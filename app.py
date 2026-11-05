@@ -150,11 +150,14 @@ with st.sidebar:
 df, aviso = None, None
 if fonte == "API do CV CRM":
     try:
-        df = montar_df(buscar_leads(cfg["dominio"], cfg["email"], cfg["token"]))
+        df = montar_df(buscar_leads(str(cfg["dominio"]).strip(), str(cfg["email"]).strip(), str(cfg["token"]).strip()))
         if df.empty:
             aviso = "A API respondeu, mas não retornou nenhum lead ativo."
     except requests.HTTPError as e:
-        aviso = f"O CV CRM recusou a requisição ({e.response.status_code}). Confira e-mail, token e domínio nos Secrets."
+        resposta = (e.response.text or "").strip()[:300]
+        aviso = (f"O CV CRM recusou a requisição ({e.response.status_code}). Confira e-mail, token e domínio nos Secrets.\n\n"
+                 f"Resposta do CV CRM: {resposta or '(vazia)'}\n\n"
+                 f"Token lido dos Secrets com {len(str(cfg['token']).strip())} caracteres.")
     except Exception as e:
         aviso = f"Não consegui falar com o CV CRM: {e}"
 elif fonte == "Planilha exportada do CV CRM":
